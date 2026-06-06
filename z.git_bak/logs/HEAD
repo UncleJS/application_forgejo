@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 a42a670177225d9c81b0345947ef1a9f37fe525e Jaco Steyn <jaco@steyn.info> 1777881935 +0200	commit (initial): first code commit
+a42a670177225d9c81b0345947ef1a9f37fe525e 7804ded89948f40e04dc1f504d56a8e6dd6c5378 Jaco Steyn <jaco@steyn.info> 1777882303 +0200	pull --rebase origin main (start): checkout 7804ded89948f40e04dc1f504d56a8e6dd6c5378
+7804ded89948f40e04dc1f504d56a8e6dd6c5378 4d299233ca7ec19935ebf6dca1154c9600027c7f Jaco Steyn <jaco@steyn.info> 1777882303 +0200	pull --rebase origin main (pick): first code commit
+4d299233ca7ec19935ebf6dca1154c9600027c7f 4d299233ca7ec19935ebf6dca1154c9600027c7f Jaco Steyn <jaco@steyn.info> 1777882303 +0200	pull --rebase origin main (finish): returning to refs/heads/main
+4d299233ca7ec19935ebf6dca1154c9600027c7f f7ac30e5dff9e021aacb86f38ee74e2287682863 Jaco Steyn <jaco@steyn.info> 1777882684 +0200	commit: Update .gitignore and enhance AGENTS.md and README.md documentation
+f7ac30e5dff9e021aacb86f38ee74e2287682863 b60e21ac61dc8ff9241319a700ab45933fb73f4b Jaco Steyn <jaco@steyn.info> 1777883571 +0200	commit: Add README.md for lifecycle scripts documentation

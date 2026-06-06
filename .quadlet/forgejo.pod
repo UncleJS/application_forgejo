@@ -1,0 +1,7 @@
+[Pod]
+PodName=forgejo
+PublishPort=0.0.0.0:13400:3000
+PublishPort=0.0.0.0:13401:22
+
+[Install]
+WantedBy=default.target

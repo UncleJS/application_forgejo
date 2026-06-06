@@ -1,0 +1,9 @@
+# Secrets / credentials
+.env
+.env.example
+
+# Logs
+*.log
+
+# Forgejo app.ini (written into volume, but guard against accidental copies)
+app.ini

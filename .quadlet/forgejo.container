@@ -1,0 +1,15 @@
+[Unit]
+Description=Forgejo — self-hosted git service
+After=forgejo-db.service
+Requires=forgejo-db.service
+
+[Container]
+ContainerName=forgejo
+Image=codeberg.org/forgejo/forgejo:15.0.1
+Pod=forgejo.pod
+Volume=forgejo-data.volume:/data:Z
+EnvironmentFile=@@REPO_ROOT@@/.env
+
+[Service]
+Restart=always
+RestartSec=10

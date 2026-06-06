@@ -1,0 +1,13 @@
+[Unit]
+Description=Forgejo — MariaDB database
+
+[Container]
+ContainerName=forgejo-db
+Image=docker.io/library/mariadb:lts
+Pod=forgejo.pod
+Volume=forgejo-db-data.volume:/var/lib/mysql:Z
+EnvironmentFile=@@REPO_ROOT@@/.env
+
+[Service]
+Restart=always
+RestartSec=10
