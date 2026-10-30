@@ -7,6 +7,10 @@
 Lifecycle scripts for the Forgejo rootless Podman pod. All scripts source
 `lib/common.sh` for shared constants and helper functions.
 
+**Routine image updates:** `./scripts/update.sh` (LTS patches / next LTS major).
+**First install or Quadlet/`.env` rebuild:** `./scripts/install.sh`.
+`update.sh` needs `python3` for schedule JSON discovery.
+
 ---
 
 ## Table of Contents
