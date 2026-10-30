@@ -27,10 +27,11 @@
 ./scripts/install.sh
 ```
 
-`update.sh` discovers the latest released Forgejo LTS (LTS-only; never 16/17/18),
-pulls patches on the same major, or after confirm upgrades to the next LTS major.
+`update.sh` is the routine image path: discovers the latest released Forgejo LTS
+(LTS-only; never 16/17/18), pulls patches on the same major, or after confirm
+upgrades to the next LTS major (backs up volumes under `backups/` first).
 `install.sh` is **idempotent** — stops the pod, copies Quadlet files, pulls images,
-reloads systemd, and restarts. Safe to run repeatedly.
+reloads systemd, and restarts. Use it for first install and Quadlet/`.env` rebuilds.
 
 [↑ Back to Table of Contents](#table-of-contents)
 

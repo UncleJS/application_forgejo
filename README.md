@@ -31,7 +31,10 @@ Self-hosted [Forgejo](https://forgejo.org) git service running as a rootless Pod
 [![Forgejo](https://img.shields.io/badge/Forgejo-15%20LTS-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
 [![MariaDB](https://img.shields.io/badge/MariaDB-LTS-blue?logo=mariadb&logoColor=white)](https://mariadb.org)
 
-This project deploys Forgejo as a rootless Podman pod using systemd Quadlet units. All persistent data lives in named Podman volumes — no bind mounts. The setup is fully idempotent: running `install.sh` again safely rebuilds and restarts the service.
+This project deploys Forgejo as a rootless Podman pod using systemd Quadlet units. All persistent data lives in named Podman volumes — no bind mounts. Images track **LTS only**: Forgejo’s floating major tag (`:15`) and MariaDB `:lts`.
+
+- First install / Quadlet or `.env` rebuild: `./scripts/install.sh` (idempotent).
+- Routine image updates (LTS patches or next LTS major): `./scripts/update.sh`.
 
 | Component | Image |
 |-----------|-------|
@@ -49,7 +52,7 @@ This project deploys Forgejo as a rootless Podman pod using systemd Quadlet unit
 
 - **Podman** ≥ 4.4 (rootless, with Quadlet support)
 - **systemd** user session active (`loginctl enable-linger $USER` is handled by `install.sh`)
-- `sed`, `bash` ≥ 4
+- `bash` ≥ 4, `sed`, `python3` (LTS discovery in `update.sh`)
 
 [↑ Back to Table of Contents](#table-of-contents)
 
@@ -66,6 +69,9 @@ $EDITOR .env        # set DB passwords and host IP / domain
 
 # 2. Install and start
 ./scripts/install.sh
+
+# 3. Later: pull LTS patches (or upgrade to the next LTS major)
+./scripts/update.sh
 ```
 
 On first run, open the web UI to complete the setup wizard:
@@ -73,6 +79,8 @@ On first run, open the web UI to complete the setup wizard:
 ```
 http://<host-ip>:13400
 ```
+
+See [Maintenance](#maintenance) for major-upgrade confirmation, `--dry-run` / `--yes`, and backups.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
