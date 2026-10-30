@@ -5,7 +5,7 @@ Requires=forgejo-db.service
 
 [Container]
 ContainerName=forgejo
-Image=codeberg.org/forgejo/forgejo:15.0.1
+Image=codeberg.org/forgejo/forgejo:15
 Pod=forgejo.pod
 Volume=forgejo-data.volume:/data:Z
 EnvironmentFile=@@REPO_ROOT@@/.env

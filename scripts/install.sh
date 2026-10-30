@@ -45,8 +45,10 @@ done
 
 # ---- [4/6] Pull images ----
 echo "[4/6] Pulling images..."
-podman pull codeberg.org/forgejo/forgejo:15.0.1
-podman pull docker.io/library/mariadb:lts
+for img in "${PROJECT_IMAGES[@]}"; do
+  echo "      ${img}"
+  podman pull "${img}"
+done
 
 # ---- [5/6] Reload systemd + enable linger ----
 echo "[5/6] Reloading systemd daemon..."
