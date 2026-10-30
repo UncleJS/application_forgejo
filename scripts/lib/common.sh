@@ -8,6 +8,15 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 QUADLET_SRC="${REPO_ROOT}/.quadlet"
 QUADLET_DEST="${HOME}/.config/containers/systemd"
 ENV_FILE="${REPO_ROOT}/.env"
+BACKUP_DIR="${REPO_ROOT}/backups"
+FORGEJO_CONTAINER_FILE="${QUADLET_SRC}/forgejo.container"
+COMMON_SH_FILE="${REPO_ROOT}/scripts/lib/common.sh"
+
+# ---- Images (single source of truth) ----
+
+FORGEJO_IMAGE="codeberg.org/forgejo/forgejo:15"
+MARIADB_IMAGE="docker.io/library/mariadb:lts"
+FORGEJO_SCHEDULE_URL="https://codeberg.org/forgejo/docs/raw/branch/next/release-schedule.json"
 
 # ---- Project inventory (explicit lists — no prune, ever) ----
 
@@ -25,8 +34,8 @@ PROJECT_CONTAINERS=(
 )
 
 PROJECT_IMAGES=(
-  "codeberg.org/forgejo/forgejo:15.0.1"
-  "docker.io/library/mariadb:lts"
+  "${FORGEJO_IMAGE}"
+  "${MARIADB_IMAGE}"
 )
 
 # Both bare and systemd- prefixed variants — Quadlet-managed volumes
@@ -37,6 +46,64 @@ PROJECT_VOLUMES=(
   "forgejo-db-data"
   "systemd-forgejo-db-data"
 )
+
+# Volumes used for backup (Quadlet-prefixed names that exist at runtime).
+BACKUP_VOLUMES=(
+  "systemd-forgejo-data:/data"
+  "systemd-forgejo-db-data:/var/lib/mysql"
+)
+
+# ---- Image / LTS helpers ----
+
+current_forgejo_major() {
+  local tag="${FORGEJO_IMAGE##*:}"
+  echo "${tag%%.*}"
+}
+
+set_forgejo_major() {
+  local major="$1"
+  local new_image="codeberg.org/forgejo/forgejo:${major}"
+
+  if [[ ! "${major}" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: invalid Forgejo major: ${major}" >&2
+    return 1
+  fi
+
+  sed -i "s|^FORGEJO_IMAGE=.*|FORGEJO_IMAGE=\"${new_image}\"|" "${COMMON_SH_FILE}"
+  sed -i "s|^Image=codeberg.org/forgejo/forgejo:.*|Image=${new_image}|" "${FORGEJO_CONTAINER_FILE}"
+
+  FORGEJO_IMAGE="${new_image}"
+  PROJECT_IMAGES=(
+    "${FORGEJO_IMAGE}"
+    "${MARIADB_IMAGE}"
+  )
+}
+
+backup_project_volumes() {
+  local stamp
+  stamp="$(date +%F-%H%M%S)"
+  mkdir -p "${BACKUP_DIR}"
+
+  echo "  Backing up volumes → ${BACKUP_DIR}"
+  for spec in "${BACKUP_VOLUMES[@]}"; do
+    local vol="${spec%%:*}"
+    local mnt="${spec#*:}"
+    local name="${vol#systemd-}"
+    local out="${BACKUP_DIR}/${name}-${stamp}.tar.gz"
+
+    if ! podman volume exists "${vol}" 2>/dev/null; then
+      echo "      SKIP (volume missing): ${vol}"
+      continue
+    fi
+
+    podman run --rm \
+      -v "${vol}:${mnt}:ro" \
+      -v "${BACKUP_DIR}:/backup" \
+      docker.io/library/alpine \
+      tar czf "/backup/$(basename "${out}")" "${mnt}"
+    echo "      ${out}"
+  done
+}
 
 # ---- Lifecycle helpers ----
 

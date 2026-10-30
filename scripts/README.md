@@ -1,6 +1,6 @@
 # Scripts
 
-[![Forgejo](https://img.shields.io/badge/Forgejo-15.0.1-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
+[![Forgejo](https://img.shields.io/badge/Forgejo-15%20LTS-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
 [![Podman](https://img.shields.io/badge/Podman-rootless-892CA0?logo=podman&logoColor=white)](https://podman.io)
 [![Systemd](https://img.shields.io/badge/systemd-Quadlet-0d7eb8)](https://www.freedesktop.org/software/systemd/man/latest/quadlet.html)
 
@@ -11,6 +11,7 @@ Lifecycle scripts for the Forgejo rootless Podman pod. All scripts source
 
 ## Table of Contents
 
+- [update.sh](#updatesh)
 - [install.sh](#installsh)
 - [start.sh](#startsh)
 - [stop.sh](#stopsh)
@@ -20,12 +21,47 @@ Lifecycle scripts for the Forgejo rootless Podman pod. All scripts source
 
 ---
 
+## update.sh
+
+[![Forgejo](https://img.shields.io/badge/Forgejo-15%20LTS-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
+
+**LTS image update.** Discovers the latest already-released Forgejo LTS from the
+official [release schedule JSON](https://codeberg.org/forgejo/docs/raw/branch/next/release-schedule.json).
+LTS-only — never selects 16/17/18. Ends by running `install.sh`.
+
+```bash
+./scripts/update.sh
+./scripts/update.sh --dry-run
+./scripts/update.sh --yes
+```
+
+### Behaviour
+
+| Situation | Action |
+|-----------|--------|
+| Same LTS major as configured | No prompt. Pull floating major tag + `mariadb:lts` via `install.sh`. |
+| Newer LTS major available | Prompt `Proceed with LTS major upgrade? [y/N]` (default No). On yes: backup volumes to `backups/`, rewrite image tags, then `install.sh`. |
+| Schedule fetch fails | Warn and fall back to same-major patch pull. |
+| Major bump, no TTY, no `--yes` | Fail closed (exit non-zero). |
+
+### Flags
+
+| Flag | Effect |
+|------|--------|
+| `--dry-run` | Print current/target major and planned action; make no changes. |
+| `--yes` | Skip the major-upgrade confirm (still backs up before rewrite). |
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
 ## install.sh
 
 [![Systemd](https://img.shields.io/badge/systemd-Quadlet-0d7eb8)](https://www.freedesktop.org/software/systemd/man/latest/quadlet.html)
 
 **Idempotent install and rebuild.** Safe to run on first install and on every
 subsequent config or Quadlet change. Running it again never causes data loss.
+For routine LTS image updates prefer `update.sh`.
 
 ```bash
 ./scripts/install.sh
@@ -38,7 +74,7 @@ subsequent config or Quadlet change. Running it again never causes data loss.
 | 1/6 | Validates `.env` exists — fails fast with copy instructions if missing |
 | 2/6 | Stops any already-running units (no-op if not running) |
 | 3/6 | Copies all `.quadlet/*` files to `~/.config/containers/systemd/`, substituting `@@REPO_ROOT@@` with the real absolute repo path so `EnvironmentFile=` resolves correctly |
-| 4/6 | Pulls both images (`forgejo:15.0.1` and `mariadb:lts`) |
+| 4/6 | Pulls each image in `PROJECT_IMAGES` (`forgejo:15` LTS major tag and `mariadb:lts`) |
 | 5/6 | Reloads the systemd user daemon; enables linger for boot persistence |
 | 6/6 | Starts `forgejo-pod.service` |
 
@@ -144,7 +180,7 @@ flags passed.
 |------|--------|
 | _(none)_ | Stop, disable, remove units and runtime. Volumes and images kept. |
 | `--purge-volumes` | Also delete all named Podman volumes. **DATA LOSS — irreversible.** Triggers a 5-second abort window. |
-| `--purge-images` | Also remove the pulled container images (`forgejo:15.0.1`, `mariadb:lts`). |
+| `--purge-images` | Also remove the pulled container images (`forgejo:15`, `mariadb:lts`). |
 
 Both flags may be combined:
 
@@ -192,16 +228,23 @@ source ./scripts/lib/common.sh
 | `QUADLET_SRC` | `$REPO_ROOT/.quadlet` | Source Quadlet unit files |
 | `QUADLET_DEST` | `~/.config/containers/systemd` | Systemd Quadlet install target |
 | `ENV_FILE` | `$REPO_ROOT/.env` | Canonical environment file |
+| `BACKUP_DIR` | `$REPO_ROOT/backups` | Volume backups from `update.sh` |
+| `FORGEJO_IMAGE` | `codeberg.org/forgejo/forgejo:15` | Forgejo LTS major image |
+| `MARIADB_IMAGE` | `docker.io/library/mariadb:lts` | MariaDB LTS image |
+| `FORGEJO_SCHEDULE_URL` | _(Codeberg docs JSON)_ | Official release schedule for LTS discovery |
 | `PROJECT_POD` | `forgejo` | Podman pod name |
 | `PROJECT_UNITS` | _(array)_ | `forgejo-pod.service`, `forgejo.service`, `forgejo-db.service` |
 | `PROJECT_CONTAINERS` | _(array)_ | `forgejo`, `forgejo-db` |
-| `PROJECT_IMAGES` | _(array)_ | `forgejo:15.0.1`, `mariadb:lts` |
+| `PROJECT_IMAGES` | _(array)_ | `${FORGEJO_IMAGE}`, `${MARIADB_IMAGE}` |
 | `PROJECT_VOLUMES` | _(array)_ | Both bare and `systemd-` prefixed volume names |
 
 ### Helper functions
 
 | Function | Description |
 |----------|-------------|
+| `current_forgejo_major` | Parse major version from `FORGEJO_IMAGE` |
+| `set_forgejo_major N` | Rewrite `FORGEJO_IMAGE` in `common.sh` and `Image=` in `.quadlet/forgejo.container` |
+| `backup_project_volumes` | Tar Quadlet volumes into `backups/` |
 | `check_env_file` | Fails with instructions if `.env` is missing |
 | `stop_units` | `systemctl --user stop` each unit in `PROJECT_UNITS` |
 | `disable_units` | `systemctl --user disable` + `reset-failed` each unit |

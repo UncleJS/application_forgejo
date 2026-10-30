@@ -1,6 +1,6 @@
 # Forgejo — AGENTS.md
 
-[![Forgejo](https://img.shields.io/badge/Forgejo-15.0.1-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
+[![Forgejo](https://img.shields.io/badge/Forgejo-15%20LTS-orange?logo=forgejo&logoColor=white)](https://forgejo.org)
 [![Podman](https://img.shields.io/badge/Podman-rootless-892CA0?logo=podman&logoColor=white)](https://podman.io)
 [![Systemd](https://img.shields.io/badge/systemd-Quadlet-0d7eb8)](https://www.freedesktop.org/software/systemd/man/latest/quadlet.html)
 
@@ -8,23 +8,29 @@
 
 ## Table of Contents
 
-- [Rebuild Command](#rebuild-command)
+- [Update / Rebuild](#update--rebuild)
 - [Ports](#ports)
 - [Quick Reference](#quick-reference)
 - [Environment](#environment)
 
 ---
 
-## Rebuild Command
+## Update / Rebuild
 
 [![Systemd](https://img.shields.io/badge/systemd-Quadlet-0d7eb8)](https://www.freedesktop.org/software/systemd/man/latest/quadlet.html)
 
 ```bash
+# LTS image update (patches; prompts on next LTS major)
+./scripts/update.sh
+
+# Install / rebuild after Quadlet or .env changes
 ./scripts/install.sh
 ```
 
-`install.sh` is **idempotent** — it stops the running pod, copies updated Quadlet
-files, pulls images, reloads systemd, and restarts. Safe to run repeatedly.
+`update.sh` discovers the latest released Forgejo LTS (LTS-only; never 16/17/18),
+pulls patches on the same major, or after confirm upgrades to the next LTS major.
+`install.sh` is **idempotent** — stops the pod, copies Quadlet files, pulls images,
+reloads systemd, and restarts. Safe to run repeatedly.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
@@ -48,6 +54,9 @@ files, pulls images, reloads systemd, and restarts. Safe to run repeatedly.
 [![Systemd](https://img.shields.io/badge/systemd-Quadlet-0d7eb8)](https://www.freedesktop.org/software/systemd/man/latest/quadlet.html)
 
 ```bash
+# Update images (LTS patches / next LTS)
+./scripts/update.sh
+
 # Start / Stop
 ./scripts/start.sh
 ./scripts/stop.sh
